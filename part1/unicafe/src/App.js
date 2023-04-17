@@ -15,28 +15,22 @@ const Header = ({title}) => <h1>{title}</h1>
 const Button = ({handleClick, text}) =>
   <button type="button" onClick={handleClick}>{text}</button>
 
-const DataDisplay = ({text, num}) => <p>{text} {num}</p>
+const StatisticLine = ({text, value}) => <p>{text} {value}</p>
 
 const Statistics = (props) => {
-  const {good, neutral, bad, hasGivenFeedback} = props
+  const {good, neutral, bad} = props
   const total = good + neutral + bad
   const average = total / 3
   const positive = (good / total) * 100
-  const feedbackResult = hasGivenFeedback
-    ? <>
-        <DataDisplay text={GOOD} num={good} />
-        <DataDisplay text={NEUTRAL} num={neutral} />
-        <DataDisplay text={BAD} num={bad} />
-        <DataDisplay text={ALL} num={total} />
-        <DataDisplay text={AVERAGE} num={average} />
-        <DataDisplay text={POSITIVE} num={`${positive} %`} />
-      </>
-    : NO_FEEDBACK
   return (
-    <>
-      <Header title={STATISTICS} />
-      {feedbackResult}
-    </>
+    <div>
+      <StatisticLine text={GOOD} value={good} />
+      <StatisticLine text={NEUTRAL} value={neutral} />
+      <StatisticLine text={BAD} value={bad} />
+      <StatisticLine text={ALL} value={total} />
+      <StatisticLine text={AVERAGE} value={average} />
+      <StatisticLine text={POSITIVE} value={`${positive} %`} />
+    </div>
   );
 }
 
@@ -72,7 +66,18 @@ const App = () => {
         <Button handleClick={() => handleClick(NEUTRAL)} text={NEUTRAL} />
         <Button handleClick={() => handleClick(BAD)} text={BAD} />
       </div>
-      <Statistics good={good} neutral={neutral} bad={bad} hasGivenFeedback={hasGivenFeedback} />
+      <div>
+        <Header title={STATISTICS} />
+      </div>
+      {hasGivenFeedback
+        ? <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            hasGivenFeedback={hasGivenFeedback}
+          />
+        : NO_FEEDBACK
+      }
     </>
   )
 }
