@@ -18,7 +18,11 @@ const Header = ({title}) => <h1>{title}</h1>
 const Button = ({handleClick, text}) =>
   <button type="button" onClick={handleClick}>{text}</button>
 
-const StatisticLine = ({text, value}) => <p>{text} {value}</p>
+const StatisticLine = ({text, value}) =>
+  <tr>
+    <td>{text}</td>
+    <td>{value}</td>
+  </tr>
 
 const Statistics = (props) => {
   const {good, neutral, bad} = props
@@ -29,14 +33,14 @@ const Statistics = (props) => {
   )
   const positive = (good / total) * 100
   return (
-    <div>
+    <table>
       <StatisticLine text={GOOD} value={good} />
       <StatisticLine text={NEUTRAL} value={neutral} />
       <StatisticLine text={BAD} value={bad} />
       <StatisticLine text={ALL} value={total} />
       <StatisticLine text={AVERAGE} value={average} />
       <StatisticLine text={POSITIVE} value={`${positive} %`} />
-    </div>
+    </table>
   );
 }
 
