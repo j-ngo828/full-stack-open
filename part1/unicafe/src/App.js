@@ -9,6 +9,9 @@ const ALL = 'all'
 const AVERAGE = 'average'
 const POSITIVE = 'positive'
 const NO_FEEDBACK = 'No feedback given'
+const GOOD_WEIGHT = 1
+const NEUTRAL_WEIGHT = 0
+const BAD_WEIGHT = -1
 
 const Header = ({title}) => <h1>{title}</h1>
 
@@ -20,7 +23,10 @@ const StatisticLine = ({text, value}) => <p>{text} {value}</p>
 const Statistics = (props) => {
   const {good, neutral, bad} = props
   const total = good + neutral + bad
-  const average = total / 3
+  const average = (
+    (good * GOOD_WEIGHT  + neutral * NEUTRAL_WEIGHT + bad * BAD_WEIGHT)
+    / total
+  )
   const positive = (good / total) * 100
   return (
     <div>
