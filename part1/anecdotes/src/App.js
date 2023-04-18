@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 const NEXT_ANECDOTE = 'next anecdote'
+const VOTE = 'vote'
 
 const getRandomNumber = (max) => Math.floor(Math.random() * max)
 
@@ -17,14 +18,20 @@ const App = () => {
     'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
     'The only way to go fast, is to go well.'
   ]
-   
+
+  const getInitVote = () => anecdotes.reduce((obj, anecdote, index) => ({...obj, [index]: 0}), {})
   const [selected, setSelected] = useState(0)
-  const handleClick = () => setSelected(getRandomNumber(anecdotes.length))
-  console.log(selected);
+  const [vote, setVote] = useState(getInitVote())
+  const handleNextAnecdoteClick = () => setSelected(getRandomNumber(anecdotes.length))
+  const handleVoteClick = () => setVote({...vote, [selected]: vote[selected] + 1})
+
+
   return (
     <div>
       <p>{anecdotes[selected]}</p>
-      <Button handleClick={handleClick} text={NEXT_ANECDOTE} />
+      <p>{vote[selected]}</p>
+      <Button handleClick={handleVoteClick} text={VOTE} />
+      <Button handleClick={handleNextAnecdoteClick} text={NEXT_ANECDOTE} />
     </div>
   )
 }
