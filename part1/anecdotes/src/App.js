@@ -2,6 +2,9 @@ import { useState } from 'react';
 
 const NEXT_ANECDOTE = 'next anecdote'
 const VOTE = 'vote'
+const ANECDOTE_HEADING = 'Anecdote of the day'
+const MAX_VOTE_HEADING = 'Anecdote with most votes'
+const NO_ANECDOTE_WITH_HIGHEST_VOTE = 'No anecdote to shown as there are no votes'
 
 const getRandomNumber = (max) => Math.floor(Math.random() * max)
 
@@ -18,20 +21,44 @@ const App = () => {
     'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
     'The only way to go fast, is to go well.'
   ]
+  const getInitVote = () => anecdotes.map((anecdote) => 0)
 
-  const getInitVote = () => anecdotes.reduce((obj, anecdote, index) => ({...obj, [index]: 0}), {})
   const [selected, setSelected] = useState(0)
   const [vote, setVote] = useState(getInitVote())
+
   const handleNextAnecdoteClick = () => setSelected(getRandomNumber(anecdotes.length))
-  const handleVoteClick = () => setVote({...vote, [selected]: vote[selected] + 1})
+  const handleVoteClick = () => setVote(
+    [
+      ...vote.slice(0, selected),
+      vote[selected] + 1,
+      ...vote.slice(selected + 1),
+    ]
+  )
+
+  const getAnecdoteWithMaxVoteIndex = () => {
+    const maxVote = vote.reduce((maxSoFar, vote) =>
+      vote > maxSoFar
+        ? vote
+        : maxSoFar,
+      0,
+    )
+    return vote.findIndex((oneVote) => oneVote === maxVote)
+  }
 
 
+  const anecdoteWithMaxVoteIndex = getAnecdoteWithMaxVoteIndex()
   return (
     <div>
+      <h1>{ANECDOTE_HEADING}</h1>
       <p>{anecdotes[selected]}</p>
       <p>{vote[selected]}</p>
       <Button handleClick={handleVoteClick} text={VOTE} />
       <Button handleClick={handleNextAnecdoteClick} text={NEXT_ANECDOTE} />
+      <h1>{MAX_VOTE_HEADING}</h1>
+      {vote[anecdoteWithMaxVoteIndex] > 0
+        ? anecdotes[anecdoteWithMaxVoteIndex]
+        : NO_ANECDOTE_WITH_HIGHEST_VOTE
+      }
     </div>
   )
 }
