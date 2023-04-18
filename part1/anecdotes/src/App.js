@@ -55,10 +55,15 @@ const App = () => {
       <Button handleClick={handleVoteClick} text={VOTE} />
       <Button handleClick={handleNextAnecdoteClick} text={NEXT_ANECDOTE} />
       <h1>{MAX_VOTE_HEADING}</h1>
-      {vote[anecdoteWithMaxVoteIndex] > 0
-        ? anecdotes[anecdoteWithMaxVoteIndex]
-        : NO_ANECDOTE_WITH_HIGHEST_VOTE
-      }
+      <p>
+        {vote[anecdoteWithMaxVoteIndex] > 0
+          ? anecdotes[anecdoteWithMaxVoteIndex]
+          : NO_ANECDOTE_WITH_HIGHEST_VOTE
+        }
+      </p>
+      <p>
+        has {vote[anecdoteWithMaxVoteIndex]} votes
+      </p>
     </div>
   )
 }
