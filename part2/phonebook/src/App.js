@@ -8,8 +8,15 @@ const App = () => {
 
   const handleNameInputChange = (event) => setNewName(event.target.value)
 
+  const nameAlreadyExists = (submittedName) =>
+    persons.findIndex((person) => person.name === submittedName) !== -1
+
   const handleAddName = (event) => {
     event.preventDefault()
+    if (nameAlreadyExists(newName)) {
+      alert(`${newName} is already added to phonebook`)
+      return
+    }
     const newPerson = {
       name: newName,
     }
