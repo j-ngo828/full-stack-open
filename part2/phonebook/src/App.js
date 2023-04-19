@@ -1,6 +1,7 @@
 import { useState } from 'react'
-
-const FILTER_INPUT_LABEL = 'filter shown with'
+import Filter from './components/Filter'
+import PersonForm from './components/PersonForm'
+import Persons from './components/Persons'
 
 const getDefaultPersonsState = () => ([
   { name: 'Arto Hellas', number: '040-123456', id: 1 },
@@ -50,31 +51,20 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <p>
-        {FILTER_INPUT_LABEL} <input value={nameSearchQuery} onChange={handleNameQueryInputChange} />
-      </p>
-      <form>
-        <div>
-          name: <input value={newName} onChange={handleNameInputChange} />
-        </div>
-        <div>
-          number: <input value={newNumber} onChange={handleNumberInputChange} />
-        </div>
-        <div>
-          <button type="submit" onClick={handleAddContact}>add</button>
-        </div>
-      </form>
-      <h2>Numbers</h2>
-      {persons
-        .filter((person) =>
-          person.name.toLocaleLowerCase().includes(
-            nameSearchQuery.toLocaleLowerCase()
-          )
-        )
-        .map((person) =>
-          <p key={person.id}>{person.name} {person.number}</p>
-        )
-      }
+      <Filter
+        nameSearchQuery={nameSearchQuery}
+        handleNameQueryInputChange={handleNameQueryInputChange}
+      />
+      <h3>Add a new</h3>
+      <PersonForm
+        newName={newName}
+        handleNameInputChange={handleNameInputChange}
+        newNumber={newNumber}
+        handleNumberInputChange={handleNumberInputChange}
+        handleAddContact={handleAddContact}
+      />
+      <h3>Numbers</h3>
+      <Persons persons={persons} nameSearchQuery={nameSearchQuery} />
     </div>
   )
 }
