@@ -8,9 +8,10 @@ const createContact = (newContact) => axios.post(baseUrl, newContact).then((resp
   response.data
 )
 
-const updateContact = (contactDetail) => axios.put(baseUrl, contactDetail).then((response) =>
-  response.data
-)
+const updateContact = (contactId, contactDetail) =>
+  axios.put(`${baseUrl}/${contactId}`, contactDetail).then((response) =>
+    response.data
+  )
 
 const deleteContact = (contactId) => axios.delete(`${baseUrl}/${contactId}`).then((response) =>
   response.data

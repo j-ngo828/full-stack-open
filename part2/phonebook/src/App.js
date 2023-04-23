@@ -21,11 +21,8 @@ const App = () => {
     [],
   )
 
-  const nameAlreadyExists = (submittedName) =>
-    persons.findIndex((person) => person.name === submittedName) !== -1
-
-  const numberAlreadyExists = (submittedNumber) =>
-    persons.findIndex((person) => person.number === submittedNumber) !== -1
+  const getIndexOfPersonWithName = (submittedName) =>
+    persons.findIndex((person) => person.name === submittedName)
 
   const handleNameInputChange = (event) => setNewName(event.target.value)
 
@@ -35,25 +32,29 @@ const App = () => {
 
   const handleAddContact = (event) => {
     event.preventDefault()
-    if (nameAlreadyExists(newName)) {
-      alert(`${newName} is already added to phonebook`)
-      return
-    }
-    if (numberAlreadyExists(newNumber)) {
-      alert(`${newNumber} is already in the phonebook`)
-      return
-    }
     const newPerson = {
-      id: persons.length + 1,
       name: newName,
       number: newNumber,
     }
-    phonebookService.createContact(newPerson)
-      .then((_) => phonebookService.getAllContacts())
-      .then((contacts) => setPersons(contacts))
-      .catch((error) => console.error(error))
-    setNewName('')
-    setNewNumber('')
+    const nameExistsIndex = getIndexOfPersonWithName(newName)
+    if (nameExistsIndex !== -1) {
+      const shouldReplaceContact = window.confirm(
+        `${newName} is already added to the phonebook, replace the old number with a new one?`
+      )
+      if (shouldReplaceContact) {
+        phonebookService.updateContact(persons[nameExistsIndex].id, newPerson)
+          .then((_) => phonebookService.getAllContacts())
+          .then((contacts) => setPersons(contacts))
+          .catch((error) => console.error(error))
+      }
+    } else {
+      phonebookService.createContact({...newPerson, id: persons.length + 1})
+        .then((_) => phonebookService.getAllContacts())
+        .then((contacts) => setPersons(contacts))
+        .catch((error) => console.error(error)) 
+      }
+      setNewName('')
+      setNewNumber('')
   }
 
   const handleDeleteContact = (contactId) => {
