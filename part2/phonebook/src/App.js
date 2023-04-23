@@ -10,6 +10,17 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [nameSearchQuery, setNameSearchQuery] = useState('')
 
+  useEffect(
+    () => {
+      phonebookService.getAllContacts()
+        .then((contacts) =>
+          setPersons(contacts)
+        )
+        .catch((error) => console.error(error))
+    },
+    [],
+  )
+
   const nameAlreadyExists = (submittedName) =>
     persons.findIndex((person) => person.name === submittedName) !== -1
 
@@ -41,21 +52,17 @@ const App = () => {
       .then((_) => phonebookService.getAllContacts())
       .then((contacts) => setPersons(contacts))
       .catch((error) => console.error(error))
-    // setPersons([...persons, newPerson])
     setNewName('')
     setNewNumber('')
   }
 
-  useEffect(
-    () => {
-      phonebookService.getAllContacts()
-        .then((contacts) =>
-          setPersons(contacts)
-        )
-        .catch((error) => console.error(error))
-    },
-    [],
-  )
+  const handleDeleteContact = (contactId) => {
+    phonebookService.deleteContact(contactId)
+      .then((_) =>
+        phonebookService.getAllContacts()
+      )
+      .then((contacts) => setPersons(contacts))
+  }
 
   return (
     <div>
@@ -73,7 +80,11 @@ const App = () => {
         handleAddContact={handleAddContact}
       />
       <h3>Numbers</h3>
-      <Persons persons={persons} nameSearchQuery={nameSearchQuery} />
+      <Persons
+        persons={persons}
+        nameSearchQuery={nameSearchQuery}
+        handleDeleteContact={handleDeleteContact}
+      />
     </div>
   )
 }
