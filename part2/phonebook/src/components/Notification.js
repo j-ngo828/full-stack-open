@@ -1,8 +1,8 @@
 import React from 'react'
 
-const Notification = ({ message, isSuccess=true, isError=false }) => {
-  const successClass = isSuccess ? "success" : ""
+const Notification = ({ message, isError=false }) => {
   const errorClass = isError ? "error" : ""
+  const successClass = isError ? "" : "success"
   return (
     message && <div className={`message ${successClass} ${errorClass}`}>{message}</div>
   )

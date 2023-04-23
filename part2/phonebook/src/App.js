@@ -10,7 +10,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [nameSearchQuery, setNameSearchQuery] = useState('')
-  const [successMessage, setSuccessMessage] = useState(null)
+  const [message, setMessage] = useState(null)
+  const [hasError, setHasError] = useState(false)
 
   useEffect(
     () => {
@@ -33,8 +34,10 @@ const App = () => {
   const handleNameQueryInputChange = (event) => setNameSearchQuery(event.target.value)
 
   const handleSuccessfulOperation = (message) => {
-    setSuccessMessage(message)
-    setTimeout(() => setSuccessMessage(null), 5000)
+    setMessage(message)
+    setTimeout(() => {
+      setMessage(null)
+    }, 5000)
     return phonebookService.getAllContacts()
   }
 
@@ -53,7 +56,18 @@ const App = () => {
         phonebookService.updateContact(persons[nameExistsIndex].id, newPerson)
           .then((_) => handleSuccessfulOperation(`Updated ${newName}'s number`))
           .then((contacts) => setPersons(contacts))
-          .catch((error) => console.error(error))
+          .catch((error) => {
+            setHasError(true)
+            setMessage(`Information of ${newName} has already been removed from server`)
+            setTimeout(() => {
+              setMessage(null)
+              setHasError(false)
+            }, 5000)
+            phonebookService.getAllContacts().then((contacts) =>
+              setPersons(contacts)
+            )
+            console.error(error)
+          })
       }
     } else {
       phonebookService.createContact({...newPerson, id: persons.length + 1})
@@ -76,7 +90,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={successMessage} />
+      <Notification message={message} isError={hasError} />
       <Filter
         nameSearchQuery={nameSearchQuery}
         handleNameQueryInputChange={handleNameQueryInputChange}
