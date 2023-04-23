@@ -1,10 +1,8 @@
-import axios from 'axios'
 import { useEffect, useState } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
-
-const personApiRoute = 'http://localhost:3001/persons'
+import phonebookService from './services/phonebookService'
 
 const App = () => {
   const [persons, setPersons] = useState([]) 
@@ -39,17 +37,22 @@ const App = () => {
       name: newName,
       number: newNumber,
     }
-    setPersons([...persons, newPerson])
+    phonebookService.createContact(newPerson)
+      .then((_) => phonebookService.getAllContacts())
+      .then((contacts) => setPersons(contacts))
+      .catch((error) => console.error(error))
+    // setPersons([...persons, newPerson])
     setNewName('')
     setNewNumber('')
   }
 
   useEffect(
     () => {
-      console.log('effect');
-      axios
-        .get(personApiRoute)
-        .then((response) => setPersons(response.data))
+      phonebookService.getAllContacts()
+        .then((contacts) =>
+          setPersons(contacts)
+        )
+        .catch((error) => console.error(error))
     },
     [],
   )
