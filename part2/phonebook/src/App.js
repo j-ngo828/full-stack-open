@@ -3,12 +3,14 @@ import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import phonebookService from './services/phonebookService'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [nameSearchQuery, setNameSearchQuery] = useState('')
+  const [successMessage, setSuccessMessage] = useState(null)
 
   useEffect(
     () => {
@@ -30,6 +32,12 @@ const App = () => {
 
   const handleNameQueryInputChange = (event) => setNameSearchQuery(event.target.value)
 
+  const handleSuccessfulOperation = (message) => {
+    setSuccessMessage(message)
+    setTimeout(() => setSuccessMessage(null), 5000)
+    return phonebookService.getAllContacts()
+  }
+
   const handleAddContact = (event) => {
     event.preventDefault()
     const newPerson = {
@@ -43,13 +51,13 @@ const App = () => {
       )
       if (shouldReplaceContact) {
         phonebookService.updateContact(persons[nameExistsIndex].id, newPerson)
-          .then((_) => phonebookService.getAllContacts())
+          .then((_) => handleSuccessfulOperation(`Updated ${newName}'s number`))
           .then((contacts) => setPersons(contacts))
           .catch((error) => console.error(error))
       }
     } else {
       phonebookService.createContact({...newPerson, id: persons.length + 1})
-        .then((_) => phonebookService.getAllContacts())
+        .then((_) => handleSuccessfulOperation(`Added ${newName}`))
         .then((contacts) => setPersons(contacts))
         .catch((error) => console.error(error)) 
       }
@@ -68,6 +76,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={successMessage} />
       <Filter
         nameSearchQuery={nameSearchQuery}
         handleNameQueryInputChange={handleNameQueryInputChange}
