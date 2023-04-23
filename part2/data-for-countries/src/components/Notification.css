@@ -1,0 +1,9 @@
+.errorNotification {
+  margin: 10px 10px 10px 0;
+  padding: 10px;
+  background-color: #f3c2c2;
+  border-radius: 6px;
+  color: #d23024;
+  font-weight: bold;
+  width: fit-content;
+}

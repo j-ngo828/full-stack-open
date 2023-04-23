@@ -45,7 +45,9 @@ const Country = ({ country, shouldShowDetail }) => {
   return (
     <div style={{ marginBottom: '16px' }}>
       {countryDisplay}{' '}
-      <Button text={showDetail ? HIDE : SHOW} handleClick={() => setShowDetail(!showDetail)} />
+      {!shouldShowDetail && (
+        <Button text={showDetail ? HIDE : SHOW} handleClick={() => setShowDetail(!showDetail)} />
+      )}
     </div>
   );
 };
