@@ -15,10 +15,10 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   const handleCountrySearch = (countryQuery) => {
+    setCountries([]);
     if (!countryQuery) {
       return;
     }
-    setCountries([]);
     countryService
       .getCountries(countryQuery)
       .then((countryData) => setCountries(countryData))
