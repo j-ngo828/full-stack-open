@@ -53,7 +53,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body;
   if (!body.name || !body.number) {
     response.status(400).json({
@@ -82,6 +82,18 @@ app.post('/api/persons', (request, response) => {
     .then((savedPerson) => {
       response.json(savedPerson);
     })
+    .catch((error) => next(error));
+});
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const id = request.params.id;
+  const body = request.body;
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+  Person.findByIdAndUpdate(id, person, { new: true })
+    .then((updatedPerson) => response.json(updatedPerson))
     .catch((error) => next(error));
 });
 
