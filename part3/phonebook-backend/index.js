@@ -1,5 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
+const Person = require('./models/person');
 
 const app = express();
 
@@ -12,33 +14,34 @@ morgan.token('body', (request, response) => {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
-let persons = [];
-
 function generateId() {
   return Math.floor(Math.random() * 23423523523);
 }
 
 app.get('/info', (request, response) => {
   const requestReceivedDate = new Date();
-  const phoneBookCount = persons.length;
-  response.send(
-    `<p>Phonebook has info for ${phoneBookCount} people</p><p>${requestReceivedDate.toString()}</p>`
-  );
+  Person.count({}).then((phoneBookCount) => {
+    response.send(
+      `<p>Phonebook has info for ${phoneBookCount} people</p><p>${requestReceivedDate.toString()}</p>`
+    );
+  });
 });
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = +request.params.id;
-  const person = persons.find((person) => person.id === id);
-
-  if (!person) {
-    response.status(404).end();
-  } else {
-    response.json(person);
-  }
+  const id = request.params.id;
+  Person.findById(id)
+    .then((person) => {
+      response.json(person);
+    })
+    .catch((error) => {
+      response.status(404).end();
+    });
 });
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -56,25 +59,24 @@ app.post('/api/persons', (request, response) => {
     return;
   }
 
-  const allNames = persons.map((person) => person.name);
-  const nameExists = allNames.find((name) => name === body.name);
+  // const allNames = persons.map((person) => person.name);
+  // const nameExists = allNames.find((name) => name === body.name);
 
-  if (nameExists) {
-    response.status(400).json({
-      error: 'name must be unique',
-    });
-    return;
-  }
+  // if (nameExists) {
+  //   response.status(400).json({
+  //     error: 'name must be unique',
+  //   });
+  //   return;
+  // }
 
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number,
-  };
+  });
 
-  persons = [...persons, person];
-
-  response.json(person);
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
 });
 
 const PORT = process.env.PORT || 3001;
