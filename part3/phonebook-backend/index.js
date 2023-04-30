@@ -62,16 +62,6 @@ app.post('/api/persons', (request, response, next) => {
     return;
   }
 
-  // const allNames = persons.map((person) => person.name);
-  // const nameExists = allNames.find((name) => name === body.name);
-
-  // if (nameExists) {
-  //   response.status(400).json({
-  //     error: 'name must be unique',
-  //   });
-  //   return;
-  // }
-
   const person = new Person({
     name: body.name,
     number: body.number,
