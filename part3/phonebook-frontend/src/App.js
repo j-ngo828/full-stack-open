@@ -31,6 +31,8 @@ const App = () => {
 
   const handleSuccessfulOperation = (message) => {
     setMessage(message);
+    setNewName('');
+    setNewNumber('');
     setTimeout(() => {
       setMessage(null);
     }, 5000);
@@ -79,8 +81,6 @@ const App = () => {
           console.error(error);
         });
     }
-    setNewName('');
-    setNewNumber('');
   };
 
   const handleDeleteContact = (contactId) => {
