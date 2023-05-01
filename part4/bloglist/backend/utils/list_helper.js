@@ -54,9 +54,49 @@ const mostBlogs = (blogs) => {
   )
 }
 
+const mostLikes = (blogs) => {
+  const listIsEmpty = blogs.length === 0
+  if (listIsEmpty) {
+    return null
+  }
+  const reducerFunc = (mapSoFar, blog) => {
+    if (lowDash.isEqual(mapSoFar, {})) {
+      return {
+        [blog.author]: blog.likes,
+      }
+    }
+    return {
+      ...mapSoFar,
+      [blog.author]: lowDash.isNil(mapSoFar[blog.author])
+        ? blog.likes
+        : mapSoFar[blog.author] + blog.likes,
+    }
+  }
+  const authorsMap = blogs.reduce(reducerFunc, {})
+  return lowDash.reduce(
+    authorsMap,
+    (result, value, key) => {
+      if (lowDash.isEqual(result, {})) {
+        return {
+          author: key,
+          likes: value,
+        }
+      }
+      return value > result.likes
+        ? {
+            author: key,
+            likes: value,
+          }
+        : result
+    },
+    {}
+  )
+}
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 }

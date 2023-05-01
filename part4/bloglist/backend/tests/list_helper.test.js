@@ -1,6 +1,6 @@
 const listHelper = require('../utils/list_helper')
 
-const { totalLikes, favoriteBlog, mostBlogs } = listHelper
+const { totalLikes, favoriteBlog, mostBlogs, mostLikes } = listHelper
 
 const generateBlogs = (likesArr) =>
   likesArr.map((likes, index) => ({
@@ -18,8 +18,8 @@ const generateBlogsAuthor = (authors) =>
     title: 'Go To Statement Considered Harmful',
     url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
     __v: 0,
-    likes: Math.floor(Math.random() * authors.length),
-    author,
+    likes: author.likes || Math.floor(Math.random() * authors.length),
+    author: author.name,
   }))
 
 test('dummy returns one', () => {
@@ -75,7 +75,14 @@ describe('most blogs', () => {
   })
 
   test('returns the author with highest amount of blog', () => {
-    const blogList = generateBlogsAuthor(['A', 'A', 'B', 'A', 'B', 'C'])
+    const blogList = generateBlogsAuthor([
+      { name: 'A' },
+      { name: 'A' },
+      { name: 'B' },
+      { name: 'A' },
+      { name: 'B' },
+      { name: 'C' },
+    ])
     expect(mostBlogs(blogList)).toEqual({
       author: 'A',
       blogs: 3,
@@ -83,10 +90,47 @@ describe('most blogs', () => {
   })
 
   test('returns the first author with highest amount of blog', () => {
-    const blogList = generateBlogsAuthor(['A', 'B', 'B', 'A'])
+    const blogList = generateBlogsAuthor([
+      { name: 'A' },
+      { name: 'B' },
+      { name: 'B' },
+      { name: 'A' },
+    ])
     expect(mostBlogs(blogList)).toEqual({
       author: 'A',
       blogs: 2,
+    })
+  })
+})
+
+describe('most likes', () => {
+  test('is null for empty bloglist', () => {
+    expect(mostLikes([])).toBeNull()
+  })
+
+  test('return the author with highest number of likes', () => {
+    const blogList = generateBlogsAuthor([
+      { name: 'A', likes: 10 },
+      { name: 'B', likes: 23 },
+      { name: 'C', likes: 1 },
+    ])
+    expect(mostLikes(blogList)).toEqual({
+      author: 'B',
+      likes: 23,
+    })
+  })
+
+  test('return the first author with highest number of likes', () => {
+    const blogList = generateBlogsAuthor([
+      { name: 'A', likes: 10 },
+      { name: 'B', likes: 9 },
+      { name: 'C', likes: 10 },
+      { name: 'D', likes: 10 },
+      { name: 'B', likes: 30 },
+    ])
+    expect(mostLikes(blogList)).toEqual({
+      author: 'B',
+      likes: 39,
     })
   })
 })
