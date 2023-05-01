@@ -1,12 +1,12 @@
 const listHelper = require('../utils/list_helper')
 
-const { totalLikes } = listHelper
+const { totalLikes, favoriteBlog } = listHelper
 
 const generateBlogs = (likesArr) =>
-  likesArr.map((likes) => ({
+  likesArr.map((likes, index) => ({
     _id: '5a422aa71b54a676234d17f8',
     title: 'Go To Statement Considered Harmful',
-    author: 'Edsger W. Dijkstra',
+    author: `Edsger W. Dijkstra Number ${index}`,
     url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
     __v: 0,
     likes,
@@ -40,5 +40,21 @@ describe('total likes', () => {
 
   test('of a bigger list is calculated right', () => {
     expect(totalLikes(generateBlogs([5, 1, 0, 2]))).toBe(8)
+  })
+})
+
+describe('favorite blog', () => {
+  test('is null when bloglist is empty', () => {
+    expect(favoriteBlog([])).toBeNull()
+  })
+
+  test('is blog with highest like in bloglist', () => {
+    const blogList = generateBlogs([0, 4, 5, 1, 10])
+    expect(favoriteBlog(blogList)).toEqual(blogList[blogList.length - 1])
+  })
+
+  test('is first blog with highest like in bloglist', () => {
+    const blogList = generateBlogs([11, 4, 11, 1, 10])
+    expect(favoriteBlog(blogList)).toEqual(blogList[0])
   })
 })
