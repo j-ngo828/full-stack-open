@@ -1,15 +1,25 @@
 const listHelper = require('../utils/list_helper')
 
-const { totalLikes, favoriteBlog } = listHelper
+const { totalLikes, favoriteBlog, mostBlogs } = listHelper
 
 const generateBlogs = (likesArr) =>
   likesArr.map((likes, index) => ({
-    _id: '5a422aa71b54a676234d17f8',
+    _id: `5a422aa71b54a676234d17f${index}`,
     title: 'Go To Statement Considered Harmful',
     author: `Edsger W. Dijkstra Number ${index}`,
     url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
     __v: 0,
     likes,
+  }))
+
+const generateBlogsAuthor = (authors) =>
+  authors.map((author, index) => ({
+    _id: `5a422aa71b54a676234d17f${index}`,
+    title: 'Go To Statement Considered Harmful',
+    url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+    __v: 0,
+    likes: Math.floor(Math.random() * authors.length),
+    author,
   }))
 
 test('dummy returns one', () => {
@@ -56,5 +66,27 @@ describe('favorite blog', () => {
   test('is first blog with highest like in bloglist', () => {
     const blogList = generateBlogs([11, 4, 11, 1, 10])
     expect(favoriteBlog(blogList)).toEqual(blogList[0])
+  })
+})
+
+describe('most blogs', () => {
+  test('returns null if bloglist is empty', () => {
+    expect(mostBlogs([])).toBeNull()
+  })
+
+  test('returns the author with highest amount of blog', () => {
+    const blogList = generateBlogsAuthor(['A', 'A', 'B', 'A', 'B', 'C'])
+    expect(mostBlogs(blogList)).toEqual({
+      author: 'A',
+      blogs: 3,
+    })
+  })
+
+  test('returns the first author with highest amount of blog', () => {
+    const blogList = generateBlogsAuthor(['A', 'B', 'B', 'A'])
+    expect(mostBlogs(blogList)).toEqual({
+      author: 'A',
+      blogs: 2,
+    })
   })
 })
