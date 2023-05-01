@@ -127,6 +127,7 @@ describe('most likes', () => {
       { name: 'C', likes: 10 },
       { name: 'D', likes: 10 },
       { name: 'B', likes: 30 },
+      { name: 'D', likes: 29 },
     ])
     expect(mostLikes(blogList)).toEqual({
       author: 'B',
