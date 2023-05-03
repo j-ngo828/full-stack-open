@@ -71,6 +71,22 @@ describe('blogs api', () => {
     expect(savedBlog).toBeDefined()
     expect(savedBlog.likes).toBe(0)
   })
+
+  test('responds with bad request if payload missing title or url fields on POST', async () => {
+    const payload = {
+      author: 'Jack Test',
+    }
+    await api.post('/api/blogs').send(payload).expect(400)
+
+    payload.title = 'Test title'
+
+    await api.post('/api/blogs').send(payload).expect(400)
+
+    delete payload.title
+    payload.url = 'https://google.com'
+
+    await api.post('/api/blogs').send(payload).expect(400)
+  })
 })
 
 afterAll(async () => mongoose.connection.close())
