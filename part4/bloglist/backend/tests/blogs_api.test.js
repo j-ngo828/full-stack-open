@@ -52,14 +52,16 @@ describe('creating a new blog', () => {
       title: 'Test title',
       author: 'Jack Test',
       url: 'https://google.com',
-      likes: 0,
+      likes: 4,
     }
-    await api.post('/api/blogs').send(payload).expect(201)
+    const result = await api.post('/api/blogs').send(payload).expect(201)
     const allBlogs = await helper.blogsInDb()
 
     expect(allBlogs).toHaveLength(helper.initialBlogs.length + 1)
-    const titles = allBlogs.map((blog) => blog.title)
-    expect(titles).toContain('Test title')
+    expect(allBlogs).toContainEqual({
+      ...payload,
+      id: result.body.id,
+    })
   })
 
   test('created blog has like default to 0 if payload does not contains likes property', async () => {
@@ -106,6 +108,52 @@ describe('deleting a single blog', () => {
     await api.delete(`/api/blogs/${blogToBeDeleted.id}`)
     const allBlogsUpdated = await helper.blogsInDb()
     expect(allBlogsUpdated.map((blog) => blog.title)).not.toContain(blogToBeDeleted.title)
+  })
+})
+
+describe('updating a single blog', () => {
+  test('responds with correct headers and status on success', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeUpdated = allBlogs[0]
+    await api
+      .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .send({ title: 'Hllo Worl!' })
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+  })
+
+  test('blog is successfully updated in the database', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeUpdated = allBlogs[0]
+    const payload = { title: 'Kafkaesque' }
+    await api
+      .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const allBlogsUpdated = await helper.blogsInDb()
+    expect(allBlogsUpdated.map((blog) => blog.title)).toContain(payload.title)
+  })
+
+  test('respond with updated data upon success', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeUpdated = allBlogs[0]
+    const payload = {
+      author: 'Franz Kafka',
+      title: 'The Metamorphosis',
+    }
+    const result = await api.put(`/api/blogs/${blogToBeUpdated.id}`).send(payload)
+    expect(result.body).toEqual({
+      id: blogToBeUpdated.id,
+      url: blogToBeUpdated.url,
+      likes: blogToBeUpdated.likes,
+      ...payload,
+    })
+  })
+
+  test('responds with 400 bad request if incorrect id format', async () => {
+    await api.put(`/api/blogs/23as`).send({ title: 'HOLA' }).expect(400)
   })
 })
 

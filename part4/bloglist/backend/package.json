@@ -8,7 +8,8 @@
     "dev": "cross-env NODE_ENV=development nodemon .",
     "lint:fix": "eslint --fix .",
     "formatAll": "prettier --write .",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand",
+    "debugTest": "node --inspect-brk node_modules/.bin/jest --runInBand"
   },
   "keywords": [],
   "author": "",
