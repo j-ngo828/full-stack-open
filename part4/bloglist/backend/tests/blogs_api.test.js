@@ -23,7 +23,7 @@ describe('blogs api', () => {
   test('returns all blogs', async () => {
     const result = await api.get('/api/blogs').expect(200)
     const allBlogs = await helper.blogsInDb()
-    expect(result.body.length).toBe(allBlogs.length)
+    expect(result.body).toHaveLength(allBlogs.length)
   })
 
   test('blog detail endpoint returns a blog with id field', async () => {
@@ -41,6 +41,35 @@ describe('blogs api', () => {
     expect(resultBlog._id).toBeUndefined()
     expect(resultBlog.__v).toBeUndefined()
     /* eslint-enable no-underscore-dangle */
+  })
+
+  test('creates a new blog', async () => {
+    const payload = {
+      title: 'Test title',
+      author: 'Jack Test',
+      url: 'https://google.com',
+      likes: 0,
+    }
+    await api.post('/api/blogs').send(payload).expect(201)
+    const allBlogs = await helper.blogsInDb()
+
+    expect(allBlogs).toHaveLength(helper.initialBlogs.length + 1)
+    const titles = allBlogs.map((blog) => blog.title)
+    expect(titles).toContain('Test title')
+  })
+
+  test('created blog has like default to 0 if payload does not contains likes property', async () => {
+    const payload = {
+      title: 'Test title',
+      author: 'Jack Test',
+      url: 'https://google.com',
+    }
+    const result = await api.post('/api/blogs').send(payload).expect(201)
+    const allBlogs = await helper.blogsInDb()
+
+    const savedBlog = allBlogs.find((blog) => blog.id === result.body.id)
+    expect(savedBlog).toBeDefined()
+    expect(savedBlog.likes).toBe(0)
   })
 })
 

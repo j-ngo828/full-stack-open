@@ -20,7 +20,25 @@ const blogsInDb = async () => {
   return blogs.map((blog) => blog.toJSON())
 }
 
+const getDefaultBlogData = () => ({
+  title: 'Test Title',
+  author: `Test Author`,
+  url: 'https://google.com',
+  likes: 5,
+})
+
+const createBlog = async (payload) => {
+  const data = {
+    ...getDefaultBlogData(),
+    ...payload,
+  }
+  const newBlog = new Blog(data)
+  const savedBlog = await newBlog.save()
+  return savedBlog
+}
+
 module.exports = {
   initialBlogs,
   blogsInDb,
+  createBlog,
 }
