@@ -12,7 +12,7 @@ beforeEach(async () => {
   await Blog.insertMany(helper.initialBlogs)
 })
 
-describe('blogs api', () => {
+describe('when there are blogs saved to the database initially', () => {
   test('blogs are returned as json', async () => {
     await api
       .get('/api/blogs')
@@ -25,15 +25,17 @@ describe('blogs api', () => {
     const allBlogs = await helper.blogsInDb()
     expect(result.body).toHaveLength(allBlogs.length)
   })
+})
 
-  test('blog detail endpoint returns a blog with id field', async () => {
+describe('viewing a single blog', () => {
+  test('a blog is returned with id field', async () => {
     const oneBlog = (await Blog.find({}))[0]
     const result = await api.get(`/api/blogs/${oneBlog.id}`).expect(200)
     const resultBlog = result.body
     expect(resultBlog.id).toBeDefined()
   })
 
-  test('blog detail endpoint returns a blog with no _id and __v fields', async () => {
+  test('a blog is returned with no _id and __v fields', async () => {
     const oneBlog = (await Blog.find({}))[0]
     const result = await api.get(`/api/blogs/${oneBlog.id}`).expect(200)
     const resultBlog = result.body
@@ -42,8 +44,10 @@ describe('blogs api', () => {
     expect(resultBlog.__v).toBeUndefined()
     /* eslint-enable no-underscore-dangle */
   })
+})
 
-  test('creates a new blog', async () => {
+describe('creating a new blog', () => {
+  test('can successfully save blog to the database', async () => {
     const payload = {
       title: 'Test title',
       author: 'Jack Test',
@@ -86,6 +90,22 @@ describe('blogs api', () => {
     payload.url = 'https://google.com'
 
     await api.post('/api/blogs').send(payload).expect(400)
+  })
+})
+
+describe('deleting a single blog', () => {
+  test('responds with 204 on successful deletion', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeDeleted = allBlogs[0]
+    await api.delete(`/api/blogs/${blogToBeDeleted.id}`).expect(204)
+  })
+
+  test('blog is successfully deleted from the database', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeDeleted = allBlogs[0]
+    await api.delete(`/api/blogs/${blogToBeDeleted.id}`)
+    const allBlogsUpdated = await helper.blogsInDb()
+    expect(allBlogsUpdated.map((blog) => blog.title)).not.toContain(blogToBeDeleted.title)
   })
 })
 
