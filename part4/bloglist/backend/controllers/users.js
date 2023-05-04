@@ -1,5 +1,6 @@
 const usersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
+const { ValidationError, ValidatorError } = require('mongoose').Error
 const User = require('../models/user')
 
 usersRouter.get('/', async (request, response) => {
@@ -9,7 +10,14 @@ usersRouter.get('/', async (request, response) => {
 
 usersRouter.post('/', async (request, response) => {
   const { username, name, password } = request.body
-
+  if (!(password && password.length >= 3)) {
+    const validationError = new ValidationError(null)
+    validationError.addError(
+      'password',
+      new ValidatorError({ message: 'Password must have at least 3 characters' })
+    )
+    throw validationError
+  }
   const saltRounds = 10
   const passwordHash = await bcrypt.hash(password, saltRounds)
 

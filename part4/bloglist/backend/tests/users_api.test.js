@@ -64,6 +64,28 @@ describe('creating a new user', () => {
     }
     await api.post(userApiRoute).send(payload).expect(400)
   })
+
+  test('returns with 400 if username or password is missing', async () => {
+    const payload = {
+      name: 'Duplicate Man',
+      password: 'superse(*(&%*#$&*(&*$3y48931cvasdf,>?<',
+    }
+    await api.post(userApiRoute).send(payload).expect(400)
+
+    delete payload.password
+    payload.username = helper.initialUsers[0].username
+
+    await api.post(userApiRoute).send(payload).expect(400)
+  })
+
+  test('returns with 400 if username or password are at most 2 characters', async () => {
+    const payload = {
+      username: 'a',
+      name: 'Duplicate Man',
+      password: 'su',
+    }
+    await api.post(userApiRoute).send(payload).expect(400)
+  })
 })
 
 afterAll(async () => mongoose.connection.close())
