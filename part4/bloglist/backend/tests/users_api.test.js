@@ -88,4 +88,41 @@ describe('creating a new user', () => {
   })
 })
 
+describe('logging in', () => {
+  test('as an existing user', async () => {
+    const payload = {
+      username: helper.initialUsers[0].username,
+      password: helper.initialUsers[0].password,
+    }
+    const result = await api
+      .post('/api/login')
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.token).toBeDefined()
+    expect(result.body.username).toBe(payload.username)
+  })
+
+  test('as a newly created user', async () => {
+    const payload = {
+      username: 'hiam3521',
+      password: 'HNO$b6WYPId*dokWH$5DQ!!l%6MP%m',
+    }
+    await api
+      .post(userApiRoute)
+      .send(payload)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+    const result = await api
+      .post('/api/login')
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.token).toBeDefined()
+    expect(result.body.username).toBe(payload.username)
+  })
+})
+
 afterAll(async () => mongoose.connection.close())
