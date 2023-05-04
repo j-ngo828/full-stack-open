@@ -4,7 +4,7 @@ const { ValidationError, ValidatorError } = require('mongoose').Error
 const User = require('../models/user')
 
 usersRouter.get('/', async (request, response) => {
-  const allUsers = await User.find({})
+  const allUsers = await User.find({}).populate('blogs', { user: 0 })
   response.json(allUsers)
 })
 

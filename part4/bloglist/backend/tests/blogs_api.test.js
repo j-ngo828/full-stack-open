@@ -3,13 +3,10 @@ const mongoose = require('mongoose')
 const app = require('../app')
 const helper = require('./test_helper')
 
-const Blog = require('../models/blog')
-
 const api = supertest(app)
 
 beforeEach(async () => {
-  await Blog.deleteMany({})
-  await Blog.insertMany(helper.initialBlogs)
+  await helper.initializesDb()
 })
 
 describe('when there are blogs saved to the database initially', () => {
@@ -24,19 +21,26 @@ describe('when there are blogs saved to the database initially', () => {
     const result = await api.get('/api/blogs').expect(200)
     const allBlogs = await helper.blogsInDb()
     expect(result.body).toHaveLength(allBlogs.length)
+    result.body.forEach((blog) => {
+      expect(blog.user).toBeDefined()
+      expect(blog.user.username).toBeDefined()
+      expect(blog.user.name).toBeDefined()
+      expect(blog.user.id).toBeDefined()
+      expect(blog.user.blogs).toBeUndefined()
+    })
   })
 })
 
 describe('viewing a single blog', () => {
   test('a blog is returned with id field', async () => {
-    const oneBlog = (await Blog.find({}))[0]
+    const oneBlog = (await helper.blogsInDb())[0]
     const result = await api.get(`/api/blogs/${oneBlog.id}`).expect(200)
     const resultBlog = result.body
     expect(resultBlog.id).toBeDefined()
   })
 
   test('a blog is returned with no _id and __v fields', async () => {
-    const oneBlog = (await Blog.find({}))[0]
+    const oneBlog = (await helper.blogsInDb())[0]
     const result = await api.get(`/api/blogs/${oneBlog.id}`).expect(200)
     const resultBlog = result.body
     /* eslint-disable no-underscore-dangle */
@@ -54,14 +58,20 @@ describe('creating a new blog', () => {
       url: 'https://google.com',
       likes: 4,
     }
-    const result = await api.post('/api/blogs').send(payload).expect(201)
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getExistingUserToken(user.username)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const result = await api
+      .post('/api/blogs')
+      .set('Authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(201)
     const allBlogs = await helper.blogsInDb()
 
     expect(allBlogs).toHaveLength(helper.initialBlogs.length + 1)
-    expect(allBlogs).toContainEqual({
-      ...payload,
-      id: result.body.id,
-    })
+    expect(allBlogs.map((blog) => ({ ...blog, user: blog.user.toString() }))).toContainEqual(
+      result.body
+    )
   })
 
   test('created blog has like default to 0 if payload does not contains likes property', async () => {
@@ -70,7 +80,13 @@ describe('creating a new blog', () => {
       author: 'Jack Test',
       url: 'https://google.com',
     }
-    const result = await api.post('/api/blogs').send(payload).expect(201)
+    const existingUserToken = await helper.getExistingUserToken(helper.initialUsers[0].username)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const result = await api
+      .post('/api/blogs')
+      .set('Authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(201)
     const allBlogs = await helper.blogsInDb()
 
     const savedBlog = allBlogs.find((blog) => blog.id === result.body.id)
@@ -78,20 +94,57 @@ describe('creating a new blog', () => {
     expect(savedBlog.likes).toBe(0)
   })
 
+  test('created blog is associated with the user who created it', async () => {
+    const payload = {
+      title: 'Test title',
+      author: 'Jack Test',
+      url: 'https://google.com',
+      likes: 4,
+    }
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getExistingUserToken(user.username)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const result = await api
+      .post('/api/blogs')
+      .set('Authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(201)
+    expect(result.body.user).toBe(user.id)
+  })
+
   test('responds with bad request if payload missing title or url fields on POST', async () => {
     const payload = {
       author: 'Jack Test',
     }
-    await api.post('/api/blogs').send(payload).expect(400)
+    const existingUserToken = await helper.getExistingUserToken(helper.initialUsers[0].username)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    await api
+      .post('/api/blogs')
+      .set('Authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(400)
 
     payload.title = 'Test title'
 
-    await api.post('/api/blogs').send(payload).expect(400)
+    await api
+      .post('/api/blogs')
+      .set('Authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(400)
 
     delete payload.title
     payload.url = 'https://google.com'
 
-    await api.post('/api/blogs').send(payload).expect(400)
+    await api
+      .post('/api/blogs')
+      .set('Authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(400)
+  })
+
+  test('returns 401 unauthorized with missing or invalid token', async () => {
+    await api.post('/api/blogs').expect(401)
+    await api.post('/api/blogs').set('Authorization', 'Bearer 450245').expect(401)
   })
 })
 
@@ -144,10 +197,11 @@ describe('updating a single blog', () => {
       title: 'The Metamorphosis',
     }
     const result = await api.put(`/api/blogs/${blogToBeUpdated.id}`).send(payload)
+    const allBlogsAfterUpdate = await helper.blogsInDb()
+    const updatedBlog = allBlogsAfterUpdate.find((blog) => blog.id === blogToBeUpdated.id)
     expect(result.body).toEqual({
-      id: blogToBeUpdated.id,
-      url: blogToBeUpdated.url,
-      likes: blogToBeUpdated.likes,
+      ...updatedBlog,
+      user: updatedBlog.user.toString(),
       ...payload,
     })
   })

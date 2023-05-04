@@ -1,30 +1,14 @@
 const supertest = require('supertest')
 const mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
 const app = require('../app')
 const helper = require('./test_helper')
-
-const User = require('../models/user')
 
 const api = supertest(app)
 
 const userApiRoute = '/api/users'
 
 beforeEach(async () => {
-  await User.deleteMany({})
-  const hashUserPasswords = helper.initialUsers.map((user) => bcrypt.hash(user.password, 10))
-  const results = await Promise.all(hashUserPasswords)
-
-  await User.insertMany(
-    helper.initialUsers.map((user, index) => {
-      const userWithHashPassword = {
-        ...user,
-        passwordHash: results[index],
-      }
-      delete userWithHashPassword.password
-      return userWithHashPassword
-    })
-  )
+  await helper.initializesDb()
 })
 
 describe('when there are some initial users in the database', () => {
@@ -35,6 +19,15 @@ describe('when there are some initial users in the database', () => {
       .expect('Content-Type', /application\/json/)
     const allUsers = await helper.usersInDb()
     expect(result.body.length).toBe(allUsers.length)
+    result.body.forEach((user) => {
+      expect(user.blogs).toBeDefined()
+      expect(user.blogs).toHaveLength(1)
+      expect(user.blogs[0].url).toBeDefined()
+      expect(user.blogs[0].title).toBeDefined()
+      expect(user.blogs[0].author).toBeDefined()
+      expect(user.blogs[0].id).toBeDefined()
+      expect(user.blogs[0].user).toBeUndefined()
+    })
   })
 })
 
