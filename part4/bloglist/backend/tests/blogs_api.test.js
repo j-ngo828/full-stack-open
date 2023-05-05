@@ -11,16 +11,27 @@ beforeEach(async () => {
 
 describe('when there are blogs saved to the database initially', () => {
   test('blogs are returned as json', async () => {
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     await api
       .get('/api/blogs')
+      .set('authorization', existingUserAuthorizationHeader)
       .expect(200)
       .expect('Content-Type', /application\/json/)
   })
 
-  test('returns all blogs', async () => {
-    const result = await api.get('/api/blogs').expect(200)
+  test('returns all blogs associated with the user', async () => {
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const result = await api
+      .get('/api/blogs')
+      .set('authorization', existingUserAuthorizationHeader)
+      .expect(200)
     const allBlogs = await helper.blogsInDb()
-    expect(result.body).toHaveLength(allBlogs.length)
+    const blogsBelongingToUser = await allBlogs.filter((blog) => blog.user.toString() === user.id)
+    expect(result.body).toHaveLength(blogsBelongingToUser.length)
     result.body.forEach((blog) => {
       expect(blog.user).toBeDefined()
       expect(blog.user.username).toBeDefined()
@@ -32,16 +43,28 @@ describe('when there are blogs saved to the database initially', () => {
 })
 
 describe('viewing a single blog', () => {
-  test('a blog is returned with id field', async () => {
+  test('a blog associated with the user is returned with id field', async () => {
     const oneBlog = (await helper.blogsInDb())[0]
-    const result = await api.get(`/api/blogs/${oneBlog.id}`).expect(200)
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const result = await api
+      .get(`/api/blogs/${oneBlog.id}`)
+      .set('authorization', existingUserAuthorizationHeader)
+      .expect(200)
     const resultBlog = result.body
-    expect(resultBlog.id).toBeDefined()
+    expect(resultBlog.id).toBe(oneBlog.id)
   })
 
   test('a blog is returned with no _id and __v fields', async () => {
     const oneBlog = (await helper.blogsInDb())[0]
-    const result = await api.get(`/api/blogs/${oneBlog.id}`).expect(200)
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const result = await api
+      .get(`/api/blogs/${oneBlog.id}`)
+      .set('authorization', existingUserAuthorizationHeader)
+      .expect(200)
     const resultBlog = result.body
     /* eslint-disable no-underscore-dangle */
     expect(resultBlog._id).toBeUndefined()
@@ -143,11 +166,6 @@ describe('creating a new blog', () => {
       .send(payload)
       .expect(400)
   })
-
-  test('returns 401 unauthorized with missing or invalid token', async () => {
-    await api.post('/api/blogs').expect(401)
-    await api.post('/api/blogs').set('Authorization', 'Bearer 450245').expect(401)
-  })
 })
 
 describe('deleting a single blog', () => {
@@ -195,8 +213,12 @@ describe('updating a single blog', () => {
   test('responds with correct headers and status on success', async () => {
     const allBlogs = await helper.blogsInDb()
     const blogToBeUpdated = allBlogs[0]
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     await api
       .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .set('authorization', existingUserAuthorizationHeader)
       .send({ title: 'Hllo Worl!' })
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -205,9 +227,13 @@ describe('updating a single blog', () => {
   test('blog is successfully updated in the database', async () => {
     const allBlogs = await helper.blogsInDb()
     const blogToBeUpdated = allBlogs[0]
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     const payload = { title: 'Kafkaesque' }
     await api
       .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .set('authorization', existingUserAuthorizationHeader)
       .send(payload)
       .expect(200)
       .expect('Content-Type', /application\/json/)
@@ -219,11 +245,17 @@ describe('updating a single blog', () => {
   test('respond with updated data upon success', async () => {
     const allBlogs = await helper.blogsInDb()
     const blogToBeUpdated = allBlogs[0]
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     const payload = {
       author: 'Franz Kafka',
       title: 'The Metamorphosis',
     }
-    const result = await api.put(`/api/blogs/${blogToBeUpdated.id}`).send(payload)
+    const result = await api
+      .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .set('authorization', existingUserAuthorizationHeader)
+      .send(payload)
     const allBlogsAfterUpdate = await helper.blogsInDb()
     const updatedBlog = allBlogsAfterUpdate.find((blog) => blog.id === blogToBeUpdated.id)
     expect(result.body).toEqual({
@@ -232,8 +264,73 @@ describe('updating a single blog', () => {
     })
   })
 
+  test('unauthorized user cannot update blog', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeUpdated = allBlogs[0]
+    const user = (await helper.usersInDb())[1]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    const payload = {
+      author: 'Franz Kafka',
+      title: 'The Metamorphosis',
+    }
+    await api
+      .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .set('authorization', existingUserAuthorizationHeader)
+      .send(payload)
+      .expect(401)
+    await api.put(`/api/blogs/${blogToBeUpdated.id}`).send(payload).expect(401)
+    await api
+      .put(`/api/blogs/${blogToBeUpdated.id}`)
+      .set('authorization', 'bearer $jiouajfodsfj')
+      .send(payload)
+      .expect(401)
+  })
+
   test('responds with 400 bad request if incorrect id format', async () => {
-    await api.put(`/api/blogs/23as`).send({ title: 'HOLA' }).expect(400)
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    await api
+      .put(`/api/blogs/23as`)
+      .set('authorization', existingUserAuthorizationHeader)
+      .send({ title: 'HOLA' })
+      .expect(400)
+  })
+})
+
+describe('unauthorized user', () => {
+  test('cannot get all blogs', async () => {
+    await api.get('/api/blogs').expect(401)
+    await api.get('/api/blogs').set('Authorization', 'Bearer 450245').expect(401)
+  })
+
+  test('cannot create a blog', async () => {
+    await api.post('/api/blogs').expect(401)
+    await api.post('/api/blogs').set('Authorization', 'Bearer 450245').expect(401)
+  })
+
+  test('cannot get a blog', async () => {
+    const oneBlog = (await helper.blogsInDb())[0]
+    const user = (await helper.usersInDb())[1]
+    await api.get(`/api/blogs/${oneBlog.id}`).expect(401)
+    const existingUserToken = await helper.getUserToken(user.id)
+    const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
+    await api
+      .get(`/api/blogs/${oneBlog.id}`)
+      .set('Authorization', existingUserAuthorizationHeader)
+      .expect(401)
+  })
+
+  test('cannot update a blog', async () => {
+    const oneBlog = (await helper.blogsInDb())[0]
+    const payload = { title: 'Kafkaesque' }
+    await api.put(`/api/blogs/${oneBlog.id}`).send(payload).expect(401)
+    await api
+      .put(`/api/blogs/${oneBlog.id}`)
+      .send(payload)
+      .set('Authorization', 'Bearer 450245')
+      .expect(401)
   })
 })
 

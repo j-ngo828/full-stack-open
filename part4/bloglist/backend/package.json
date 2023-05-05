@@ -9,6 +9,7 @@
     "lint:fix": "eslint --fix .",
     "formatAll": "prettier --write .",
     "test": "cross-env NODE_ENV=test jest --verbose --runInBand",
+    "test:api": "cross-env NODE_ENV=test jest --verbose --runInBand tests/blogs_api.test.js tests/users_api.test.js",
     "debugTest": "node --inspect-brk node_modules/.bin/jest --runInBand"
   },
   "keywords": [],

@@ -3,16 +3,23 @@ const Blog = require('../models/blog')
 const User = require('../models/user')
 
 blogsRouter.get('/', async (request, response) => {
-  const allBlogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
+  const { user } = request
+  const allBlogs = await Blog.find({ user: user.id }).populate('user', {
+    username: 1,
+    name: 1,
+  })
   response.json(allBlogs)
 })
 
 blogsRouter.get('/:id', async (request, response) => {
+  const { user } = request
   const oneBlog = await Blog.findById(request.params.id)
-  if (oneBlog) {
+  if (oneBlog && oneBlog.user.toString() === user.id) {
     response.json(oneBlog)
-  } else {
+  } else if (!oneBlog) {
     response.status(404).end()
+  } else {
+    response.status(401).end()
   }
 })
 
@@ -34,16 +41,27 @@ blogsRouter.delete('/:id', async (request, response) => {
   const { user } = request
 
   const blogToBeDeleted = await Blog.findById(request.params.id)
-  if (blogToBeDeleted.user.toString() === user.id) {
+  if (blogToBeDeleted && blogToBeDeleted.user.toString() === user.id) {
     await Blog.deleteOne({ _id: blogToBeDeleted._id })
-    return response.status(204).end()
+    response.status(204).end()
+  } else if (!blogToBeDeleted) {
+    response.status(404).end()
+  } else {
+    response.status(401).end()
   }
-  return response.status(401).end()
 })
 
 blogsRouter.put('/:id', async (request, response) => {
-  const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, request.body, { new: true })
-  response.json(updatedBlog)
+  const { user } = request
+  const blogToBeUpdated = await Blog.findById(request.params.id)
+  if (blogToBeUpdated && blogToBeUpdated.user.toString() === user.id) {
+    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, request.body, { new: true })
+    response.json(updatedBlog)
+  } else if (!blogToBeUpdated) {
+    response.status(404).end()
+  } else {
+    response.status(401).end()
+  }
 })
 
 module.exports = blogsRouter
