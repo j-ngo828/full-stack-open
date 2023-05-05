@@ -40,6 +40,7 @@ blogsRouter.post('/', async (request, response) => {
 blogsRouter.delete('/:id', async (request, response) => {
   const { user } = request
 
+  // Buggy! Need to update the blogs in the User document as well
   const blogToBeDeleted = await Blog.findById(request.params.id)
   if (blogToBeDeleted && blogToBeDeleted.user.toString() === user.id) {
     await Blog.deleteOne({ _id: blogToBeDeleted._id })
