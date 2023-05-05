@@ -229,7 +229,6 @@ describe('updating a single blog', () => {
     expect(result.body).toEqual({
       ...updatedBlog,
       user: updatedBlog.user.toString(),
-      ...payload,
     })
   })
 
