@@ -58,9 +58,8 @@ const usersInDb = async () => {
   return users.map((user) => user.toJSON())
 }
 
-const getExistingUserToken = async (username) => {
-  const users = await User.find({ username })
-  const user = users[0]
+const getUserToken = async (userId) => {
+  const user = await User.findById(userId)
   const userForToken = {
     username: user.username,
     id: user._id,
@@ -111,6 +110,6 @@ module.exports = {
   createBlog,
   initialUsers,
   usersInDb,
-  getExistingUserToken,
+  getUserToken,
   initializesDb,
 }

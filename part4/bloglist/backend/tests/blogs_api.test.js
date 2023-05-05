@@ -59,7 +59,7 @@ describe('creating a new blog', () => {
       likes: 4,
     }
     const user = (await helper.usersInDb())[0]
-    const existingUserToken = await helper.getExistingUserToken(user.username)
+    const existingUserToken = await helper.getUserToken(user.id)
     const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     const result = await api
       .post('/api/blogs')
@@ -80,7 +80,8 @@ describe('creating a new blog', () => {
       author: 'Jack Test',
       url: 'https://google.com',
     }
-    const existingUserToken = await helper.getExistingUserToken(helper.initialUsers[0].username)
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
     const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     const result = await api
       .post('/api/blogs')
@@ -102,7 +103,7 @@ describe('creating a new blog', () => {
       likes: 4,
     }
     const user = (await helper.usersInDb())[0]
-    const existingUserToken = await helper.getExistingUserToken(user.username)
+    const existingUserToken = await helper.getUserToken(user.id)
     const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     const result = await api
       .post('/api/blogs')
@@ -116,7 +117,8 @@ describe('creating a new blog', () => {
     const payload = {
       author: 'Jack Test',
     }
-    const existingUserToken = await helper.getExistingUserToken(helper.initialUsers[0].username)
+    const user = (await helper.usersInDb())[0]
+    const existingUserToken = await helper.getUserToken(user.id)
     const existingUserAuthorizationHeader = `Bearer ${existingUserToken}`
     await api
       .post('/api/blogs')
@@ -152,15 +154,40 @@ describe('deleting a single blog', () => {
   test('responds with 204 on successful deletion', async () => {
     const allBlogs = await helper.blogsInDb()
     const blogToBeDeleted = allBlogs[0]
-    await api.delete(`/api/blogs/${blogToBeDeleted.id}`).expect(204)
+    const user = (await helper.usersInDb())[0]
+    const token = await helper.getUserToken(user.id)
+    const authorizationHeader = `Bearer ${token}`
+    await api
+      .delete(`/api/blogs/${blogToBeDeleted.id}`)
+      .set('Authorization', authorizationHeader)
+      .expect(204)
   })
 
   test('blog is successfully deleted from the database', async () => {
     const allBlogs = await helper.blogsInDb()
     const blogToBeDeleted = allBlogs[0]
-    await api.delete(`/api/blogs/${blogToBeDeleted.id}`)
+    const user = (await helper.usersInDb())[0]
+    const token = await helper.getUserToken(user.id)
+    const authorizationHeader = `Bearer ${token}`
+
+    await api.delete(`/api/blogs/${blogToBeDeleted.id}`).set('Authorization', authorizationHeader)
+
     const allBlogsUpdated = await helper.blogsInDb()
     expect(allBlogsUpdated.map((blog) => blog.title)).not.toContain(blogToBeDeleted.title)
+  })
+
+  test('responds with 401 unauthorized if attempting delete without token or by an invalid user', async () => {
+    const allBlogs = await helper.blogsInDb()
+    const blogToBeDeleted = allBlogs[0]
+    const user = (await helper.usersInDb())[1]
+    const token = await helper.getUserToken(user.id)
+    const authorizationHeader = `Bearer ${token}`
+
+    await api
+      .delete(`/api/blogs/${blogToBeDeleted.id}`)
+      .set('Authorization', authorizationHeader)
+      .expect(401)
+    await api.delete(`/api/blogs/${blogToBeDeleted.id}`).expect(401)
   })
 })
 
