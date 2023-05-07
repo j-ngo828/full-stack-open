@@ -39,6 +39,12 @@ const App = () => {
     }
   }
 
+  const handleLogout = () => {
+    window.localStorage.removeItem('loggedInUser')
+    blogService.setToken(null)
+    setUser(null)
+  }
+
   const loginForm = () => (
     <form onSubmit={handleLogin}>
       <div>
@@ -71,10 +77,25 @@ const App = () => {
       />
     ))
 
+  const logOutButton = () => {
+    return (
+      <button
+        type="button"
+        onClick={handleLogout}
+      >
+        logout
+      </button>
+    )
+  }
+
   return (
     <div>
       <h2>blogs</h2>
-      {user && <p>{user.name} logged in</p>}
+      {user && (
+        <p>
+          {user.name} logged in {logOutButton()}
+        </p>
+      )}
       {user ? renderBlogs() : loginForm()}
     </div>
   )
