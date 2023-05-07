@@ -1,0 +1,19 @@
+{
+  "env": {
+    "node": true,
+    "commonjs": true,
+    "es2021": true,
+    "jest": true
+  },
+  "extends": ["airbnb-base", "prettier"],
+  "overrides": [],
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "rules": {
+    "semi": "off",
+    "no-console": "off",
+    "no-underscore-dangle": "off",
+    "no-await-in-loop": "off"
+  }
+}
