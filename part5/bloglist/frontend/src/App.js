@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Blog from './components/Blog'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -15,6 +16,8 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [blogInputs, setBlogInputs] = useState(getInitialBlogInputs())
+  const [message, setMessage] = useState('')
+  const [hasError, setHasError] = useState(false)
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs))
@@ -43,7 +46,12 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      console.error(exception)
+      setMessage('wrong username or password')
+      setHasError(true)
+      setTimeout(() => {
+        setMessage('')
+        setHasError(false)
+      }, 5000)
     }
   }
 
@@ -56,9 +64,23 @@ const App = () => {
   const handleCreateBlog = async (event) => {
     event.preventDefault()
     console.log(blogInputs)
-    const createdBlog = await blogService.create(blogInputs)
-    setBlogs([...blogs, createdBlog])
-    setBlogInputs(getInitialBlogInputs())
+    try {
+      const createdBlog = await blogService.create(blogInputs)
+      setBlogs([...blogs, createdBlog])
+      setBlogInputs(getInitialBlogInputs())
+      setMessage(`a new blog ${createdBlog.title} by ${createdBlog.author} added`)
+      setTimeout(() => {
+        setMessage('')
+      }, 5000)
+    } catch (exception) {
+      console.error(exception)
+      setMessage(exception.response.data.error)
+      setHasError(true)
+      setTimeout(() => {
+        setMessage('')
+        setHasError(false)
+      }, 5000)
+    }
   }
 
   const loginForm = () => (
@@ -142,7 +164,11 @@ const App = () => {
 
   return (
     <div>
-      <h2>blogs</h2>
+      <h2>{user ? 'blogs' : 'log in to application'}</h2>
+      <Notification
+        message={message}
+        isError={hasError}
+      />
       {user && (
         <p>
           {user.name} logged in {logOutButton()}
